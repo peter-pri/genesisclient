@@ -474,7 +474,7 @@ class GenesisClient(object):
             parts.pop()
             parts.pop()
             return "\r\n".join(parts)
-        elif format == 'cls':
+        elif format == 'csv':
             #del params['format']
             #params['komprimierung'] = ''
             result = client.service.TabellenDownload(**params)
