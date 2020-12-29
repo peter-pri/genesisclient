@@ -3,6 +3,7 @@ import suds
 import logging
 from lxml import etree
 
+DEBUG = False
 gc = None
 
 
@@ -62,7 +63,8 @@ class GenesisClient(object):
         if name not in self.service_clients:
             url = (self.sites[self.site]['webservice_url']
                   + self.endpoints[name])
-            print(" url  = ", url)
+            if DEBUG:
+                print(" url  = ", url)
             self.service_clients[name] = suds.client.Client(url, retxml=True)
         return self.service_clients[name]
 
@@ -89,7 +91,8 @@ class GenesisClient(object):
             "Datenquader", "Merkmal", "Statistik"
         """
         client = self.init_service_client('RechercheService_2010')
-        #print(client)
+        if DEBUG:
+            print(client)
         params = dict(luceneString=searchterm,
                       kennung=self.username,
                       passwort=self.password,
@@ -134,7 +137,8 @@ class GenesisClient(object):
         to implement search term auto-completion.
         """
         client = self.init_service_client('RechercheService_2010')
-        #print(client)
+        if DEBUG:
+            print(client)
         params = dict(kennung=self.username,
                       passwort=self.password,
                       filter=filter,
@@ -174,7 +178,8 @@ class GenesisClient(object):
         area
         """
         client = self.init_service_client('RechercheService_2010')
-        #print(client)
+        if DEBUG:
+            print(client)
         params = dict(kennung=self.username,
                       passwort=self.password,
                       filter=filter,
@@ -263,7 +268,8 @@ class GenesisClient(object):
                       listenLaenge=str(limit),
                       sprache='de')
         result = client.service.MerkmalStatistikenKatalog(**params)
-        print(result)
+        if DEBUG:
+            print(result)
 
     def property_tables(self, property_code='*', selection='*', limit=500):
         client = self.init_service_client('RechercheService_2010')
@@ -275,7 +281,8 @@ class GenesisClient(object):
                       listenLaenge=str(limit),
                       sprache='de')
         result = client.service.MerkmalTabellenKatalog(**params)
-        print(result)
+        if DEBUG:
+            print(result)
 
     def statistics(self, filter='*', criteria='Code', limit=500):
         """
@@ -417,10 +424,12 @@ class GenesisClient(object):
         """
         Return data for a given table
         """
-        print("table_export")
+        if DEBUG:
+            print("table_export")
         client = self.init_service_client('DownloadService_2010')
 
-        print("client = self.init_service_client('DownloadService_2010') =", client)
+        if DEBUG:
+            print("client = self.init_service_client('DownloadService_2010') =", client)
         params = dict(kennung=self.username,
                       passwort=self.password,
                       name=table_code,
@@ -443,7 +452,8 @@ class GenesisClient(object):
                       stand='',
                       sprache='de',
                       )
-        print(" nach --- > table_export")
+        if DEBUG:
+            print(" nach --- > table_export")
         result = None
 
         if len(regionalschluessel) == 8:
@@ -461,13 +471,13 @@ class GenesisClient(object):
             result = client.service.TabellenDownload(**params)
             # Really nasty way to treat a multipart message...
             # (room for improvement)
-            print("type(result) =====", type(result))
-            print("result =====", result)
-
             result_str =  result.decode("utf-8")
-            print("result_str =====", result_str)
             parts = result_str.split("\n")
-            print("parts =====", parts)
+            if DEBUG:
+                print("type(result) =====", type(result))
+                print("result =====", result)
+                print("result_str =====", result_str)
+                print("parts =====", parts)
 
             for i in range(0, 12):
                 parts.pop(0)
@@ -480,34 +490,31 @@ class GenesisClient(object):
             result = client.service.TabellenDownload(**params)
             # Really nasty way to treat a multipart message...
             # (room for improvement)
-            # (room for improvement)
-            print("type(result) =====", type(result))
-            print("result =====", result)
-
             result_str =  result.decode("utf-8")
-            print("result_str =====", result_str)
             parts = result_str.split("\n")
-            print("parts =====", parts)
+            if DEBUG:
+                print("type(result) =====", type(result))
+                print("result =====", result)
+                print("result_str =====", result_str)
+                print("parts =====", parts)
             # for i in range(0, 12):
             #     parts.pop(i)
             parts.pop()
             parts.pop()
             return "\r\n".join(parts)
         else:
-            print("  result = client.service.TabellenDownload(**params)", params)
             result = client.service.TabellenDownload(**params)
-            print("type(result) =====", type(result))
-            print("result =====", result)
-
-            result_str =  result.decode("utf-8")
-            print("result_str =====", result_str)
-
+            result_str = result.decode("utf-8")
             parts = result_str.split(result_str.split("\r\n")[1])
             data = parts[2].split("\r\n\r\n", 1)[-1]
             #data = unicode(data.decode('latin-1'))
             #data = unicode(data.decode('utf-8'))
-
-            print(" date ===== ", data)
+            if DEBUG:
+                print("  result = client.service.TabellenDownload(**params)", params)
+                print("type(result) =====", type(result))
+                print("result =====", result)
+                print("result_str =====", result_str)
+                print(" date ===== ", data)
             return data
 
 
@@ -530,7 +537,8 @@ def download(client, args):
     if args.regionalschluessel is not None and args.regionalschluessel != '*':
         rs = args.regionalschluessel
         path = '%s_%s.%s' % (args.download, args.regionalschluessel, args.format)
-    print("Downloading to file %s" % path)
+    if True:
+        print("Downloading to file %s" % path)
     result = client.table_export(args.download,
             regionalschluessel=rs,
             format=args.format)
@@ -623,8 +631,8 @@ def main():
                     password=args.password)
     # test if the service works
     #gc.test_service()
-
-    print("gc = ", gc, "args =", args)
+    if DEBUG:
+        print("gc = ", gc, "args =", args)
     if args.download is not None:
         download(gc, args)
     elif args.searchterm is not None:
@@ -633,6 +641,7 @@ def main():
         lookup(gc, args)
 
     # From here on it's all work-in-progress code
+    # ???????????????????????????????????????????
     sys.exit()
 
     # submit a search
